@@ -8,6 +8,13 @@
       "when": 1773652128430,
       "tag": "0000_round_aqueduct",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775511089589,
+      "tag": "0001_solid_white_tiger",
+      "breakpoints": true
     }
   ]
 }

@@ -9,15 +9,20 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import Link from "next/link"
+import { User, Mail, Lock, ArrowRight, Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const signupSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters long"),
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters long"),
 })
-export default function SingupPage() {
+
+export default function SignupPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    
     const {
         register,
         handleSubmit,
@@ -25,6 +30,7 @@ export default function SingupPage() {
     } = useForm<z.infer<typeof signupSchema>>({
         resolver: zodResolver(signupSchema),
     })
+
     const onSubmit = async (data: z.infer<typeof signupSchema>) => {
         setLoading(true)
         try {
@@ -36,73 +42,127 @@ export default function SingupPage() {
                 body: JSON.stringify(data),
             })
             if (res.ok) {
-                toast.success("signup successfully")
+                toast.success("Account created successfully! Welcome to XDays.")
                 router.push("/dashboard")
+                router.refresh()
+            } else {
+                const errorData = await res.json()
+                toast.error(errorData.error || "Signup failed. Please try again.")
             }
         } catch (error) {
-            console.log(error)
+            console.error(error)
+            toast.error("An unexpected error occurred.")
         } finally {
             setLoading(false)
         }
     }
+
     return (
-        <div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>
-                        Signup
-                    </CardTitle>
-                    <CardDescription>
-                        Create your account and track your habits professioanlly
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className="grid gap-4">
+        <div className="container relative flex min-h-screen flex-col items-center justify-center lg:px-0">
+            <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
+                <div className="flex flex-col space-y-2 text-center">
+                    <h1 className="text-3xl font-bold tracking-tight outfit text-gradient">
+                        Start Your Journey
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Create an account to start tracking your daily evolution
+                    </p>
+                </div>
+
+                <Card className="glass-card border-none shadow-2xl">
+                    <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl font-semibold tracking-tight outfit">Sign Up</CardTitle>
+                        <CardDescription>
+                            Join a community of achievers and build lasting habits
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name" className="flex items-center gap-2">
+                                    <User className="w-4 h-4 text-primary/60" />
+                                    Full Name
+                                </Label>
                                 <Input
                                     id="name"
                                     type="text"
                                     placeholder="John Doe"
+                                    className="bg-background/50 border-primary/10 focus:border-primary/30 transition-all"
                                     {...register("name")}
                                 />
                                 {errors.name && (
-                                    <p className="text-red-500">{errors.name.message}</p>
+                                    <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1">
+                                        {errors.name.message}
+                                    </p>
                                 )}
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email" className="flex items-center gap-2">
+                                    <Mail className="w-4 h-4 text-primary/60" />
+                                    Email
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="[EMAIL_ADDRESS]"
+                                    placeholder="name@example.com"
+                                    className="bg-background/50 border-primary/10 focus:border-primary/30 transition-all"
                                     {...register("email")}
                                 />
                                 {errors.email && (
-                                    <p className="text-red-500">{errors.email.message}</p>
+                                    <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1">
+                                        {errors.email.message}
+                                    </p>
                                 )}
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password" className="flex items-center gap-2">
+                                    <Lock className="w-4 h-4 text-primary/60" />
+                                    Password
+                                </Label>
                                 <Input
                                     id="password"
                                     type="password"
-                                    placeholder="********"
+                                    placeholder="••••••••"
+                                    className="bg-background/50 border-primary/10 focus:border-primary/30 transition-all"
                                     {...register("password")}
                                 />
                                 {errors.password && (
-                                    <p className="text-red-500">{errors.password.message}</p>
+                                    <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1">
+                                        {errors.password.message}
+                                    </p>
                                 )}
                             </div>
-                            <Button type="submit" disabled={loading}>
-                                {loading ? "Creating account..." : "Create account"}
+                            <Button 
+                                type="submit" 
+                                className="w-full group relative overflow-hidden" 
+                                disabled={loading}
+                            >
+                                <span className={cn(
+                                    "flex items-center justify-center gap-2 transition-all",
+                                    loading && "opacity-0"
+                                )}>
+                                    Create Account <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </span>
+                                {loading && (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    </div>
+                                )}
                             </Button>
-                        </div>
-                    </form>
-                </CardContent>
+                        </form>
+                    </CardContent>
+                </Card>
 
-            </Card>
+                <p className="px-8 text-center text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <Link
+                        href="/login"
+                        className="underline underline-offset-4 hover:text-primary transition-colors font-medium"
+                    >
+                        Login
+                    </Link>
+                </p>
+            </div>
         </div>
     )
 }

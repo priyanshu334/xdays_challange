@@ -1,26 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
-import TopBar from "@/components/Topbar";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const inter = Inter({ 
+  subsets: ["latin"], 
+  variable: "--font-inter" 
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const outfit = Outfit({ 
+  subsets: ["latin"], 
+  variable: "--font-outfit" 
 });
 
 export const metadata: Metadata = {
-  title: "XDaysChallange",
-  description: "XDays is a platform for tracking your daily habits and goals.",
+  title: "XDaysChallenge | Track Your Evolution",
+  description: "XDays is a premium platform for tracking your daily habits, challenges, and goals with precision and style.",
+  keywords: ["challenge tracker", "habit tracker", "productivity", "goals", "self-improvement"],
 };
 
 export default function RootLayout({
@@ -29,22 +27,33 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-mono", jetbrainsMono.variable)}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem
-        disableTransitionOnChange
-
-
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn(
+          "min-h-screen font-sans antialiased",
+          inter.variable,
+          outfit.variable
+        )}
       >
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         >
-          {children}
-          <Toaster position="bottom-right" />
-        </body>
-      </ThemeProvider>
+          <div className="relative flex min-h-screen flex-col">
+            <main className="flex-1">
+              {children}
+            </main>
+          </div>
+          <Toaster 
+            position="top-center" 
+            toastOptions={{
+              className: "glass border-primary/20",
+            }}
+          />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

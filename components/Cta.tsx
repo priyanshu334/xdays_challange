@@ -1,49 +1,62 @@
 import { Button } from "./ui/button";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, Zap } from "lucide-react";
 import Link from "next/link";
 
 export default function CTA() {
   return (
-    <section className="py-24 px-6">
-      {/* Container with a subtle gradient border effect */}
-      <div className="relative max-w-5xl mx-auto overflow-hidden rounded-3xl bg-neutral-900 border border-neutral-800 px-8 py-16 sm:px-16 sm:py-24 text-center shadow-2xl">
+    <section className="py-24 px-6 relative overflow-hidden">
+      {/* Background Decorative Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 h-[600px] w-[800px] bg-primary/10 blur-[120px] rounded-full opacity-50" />
 
-        {/* Background Decorative Glow */}
-        <div className="absolute -top-24 -right-24 h-64 w-64 bg-amber-600/20 blur-[100px] rounded-full" />
-        <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-amber-900/20 blur-[100px] rounded-full" />
-
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-semibold uppercase tracking-wider mb-6">
-            <Sparkles className="size-3" />
+      <div className="relative max-w-5xl mx-auto overflow-hidden rounded-[3rem] bg-linear-to-b from-card/80 to-card/40 backdrop-blur-2xl border border-primary/10 px-8 py-16 sm:px-16 sm:py-24 text-center shadow-2xl">
+        
+        <div className="relative z-10 space-y-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-[0.2em] outfit mb-2">
+            <Sparkles className="size-4 fill-current" />
             No more half-finished projects
           </div>
 
-          <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-            Ready to finish what you <span className="text-amber-500">start?</span>
+          <h2 className="text-4xl font-black tracking-tight text-foreground sm:text-6xl outfit leading-[1.1]">
+            Ready to finish what you <span className="text-gradient">start?</span>
           </h2>
 
-          <p className="mx-auto mt-6 max-w-xl text-lg text-neutral-400">
-            Join a community of builders committing to their goals. Your next
-            big project is only <span className="text-white font-medium italic">X days</span> away from completion.
+          <p className="mx-auto max-w-xl text-lg text-muted-foreground font-medium leading-relaxed">
+            Join a global community of high-performers committing to their evolution. Your breakthrough is only <span className="text-foreground font-bold">X days</span> away.
           </p>
 
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="flex flex-col items-center justify-center gap-6 sm:flex-row pt-4">
             <Button
               size="lg"
               asChild
-              className="h-14 px-10 text-lg bg-amber-600 hover:bg-amber-500 text-white transition-all hover:scale-105 shadow-xl shadow-amber-900/20"
+              className="h-16 px-12 text-xl font-bold bg-primary hover:bg-primary/90 text-white transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-primary/30 rounded-full group outline-none"
             >
-              <Link href="/signup">
-                Start your challenge
-                <ArrowRight className="ml-2 size-5" />
+              <Link href="/signup" className="flex items-center gap-3">
+                Start My Challenge
+                <ArrowRight className="size-6 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
 
-            <p className="text-sm text-neutral-500 sm:ml-4">
-              Join <span className="text-neutral-300 font-bold">452 builders</span> this week
-            </p>
+            <div className="flex items-center gap-3 text-muted-foreground/80">
+              <div className="flex -space-x-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="size-10 rounded-full border-2 border-background bg-muted flex items-center justify-center font-bold text-[10px] overflow-hidden">
+                    <img 
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 42}`} 
+                      alt="Avatar" 
+                      className="size-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm font-bold outfit">
+                Join <span className="text-primary">452+ builders</span> this week
+              </p>
+            </div>
           </div>
         </div>
+
+        {/* Decorative corner icon */}
+        <Zap className="absolute -bottom-6 -right-6 size-32 text-primary/5 -rotate-12 pointer-events-none" />
       </div>
     </section>
   );

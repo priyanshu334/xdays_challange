@@ -1,3 +1,3 @@
 export * from "./users"
-export * from "./challanges"
+export * from "./challenges"
 export * from "./dailylogs"

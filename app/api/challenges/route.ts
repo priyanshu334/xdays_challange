@@ -65,6 +65,6 @@ export async function GET() {
         )
 
     }
-    const userChallanges = await db.select().from(challenges).where(eq(challenges.userId, user.userId))
-    return NextResponse.json(userChallanges)
+    const userChallenges = await db.select().from(challenges).where(eq(challenges.userId, user.userId))
+    return NextResponse.json(userChallenges)
 }

@@ -7,7 +7,7 @@ import {
     timestamp
 } from "drizzle-orm/pg-core"
 
-import { challenges } from "./challanges"
+import { challenges } from "./challenges"
 
 export const dailyLogs = pgTable("daily_logs", {
 

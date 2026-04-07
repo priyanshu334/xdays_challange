@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken"
 
-export function signToken(payload: any) {
+export function signToken(payload: string | object | Buffer) {
     return jwt.sign(payload, process.env.JWT_SECRET!, {
         expiresIn: "7d"
     })
