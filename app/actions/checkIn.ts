@@ -11,12 +11,14 @@ export async function checkInAction(formData: FormData) {
     if (!user) return
 
     const challengeId = formData.get("challengeId") as string
+    const note = formData.get("note") as string
 
     const challenge = await db.query.challenges.findFirst({
         where: eq(challenges.id, challengeId),
     })
 
     if (!challenge) return
+    if (challenge.userId !== user.userId) return
 
     const startDate = new Date(challenge.startDate)
     startDate.setHours(0, 0, 0, 0)
@@ -25,6 +27,7 @@ export async function checkInAction(formData: FormData) {
     today.setHours(0, 0, 0, 0)
 
     const diffInDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    if (diffInDays < 1 || diffInDays > challenge.durationDays) return
 
     // 🚫 prevent duplicate check-in
     const existing = await db.query.dailyLogs.findFirst({
@@ -40,6 +43,7 @@ export async function checkInAction(formData: FormData) {
         challengeId,
         dayNumber: diffInDays,
         completed: true,
+        note: note || "",
     })
 
     revalidatePath(`/dashboard/challenges/${challengeId}`)

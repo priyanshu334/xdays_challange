@@ -5,7 +5,7 @@ import { Plus, Trophy, Activity, Target } from "lucide-react"
 import { getCurrentUser } from "@/lib/auth/get-user"
 import { db } from "@/db"
 import { challenges, dailyLogs } from "@/db/schemas"
-import { eq, sql } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { redirect } from "next/navigation"
 
 export const dynamic = "force-dynamic"
@@ -24,12 +24,23 @@ async function getChallengesWithProgress(userId: string) {
                 .where(eq(dailyLogs.challengeId, challenge.id))
 
             const daysCompletedCount = logs.filter(l => l.completed).length
-            const progress = (daysCompletedCount / challenge.durationDays) * 100
+            const progress = Math.min((daysCompletedCount / challenge.durationDays) * 100, 100)
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            const startDate = new Date(challenge.startDate)
+            startDate.setHours(0, 0, 0, 0)
+            const currentDayNumber =
+                Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+            const todayCompleted = logs.some(
+                (l) => l.dayNumber === currentDayNumber && l.completed
+            )
 
             return {
                 ...challenge,
                 progress,
-                daysCompleted: daysCompletedCount
+                daysCompleted: daysCompletedCount,
+                currentDayNumber,
+                todayCompleted,
             }
         })
     )
@@ -45,6 +56,12 @@ export default async function DashboardPage() {
     }
 
     const challengesData = await getChallengesWithProgress(user.userId)
+    const checkInCandidate = challengesData.find(
+        (challenge) =>
+            challenge.currentDayNumber >= 1 &&
+            challenge.currentDayNumber <= challenge.durationDays &&
+            !challenge.todayCompleted
+    )
 
     return (
         <div className="container mx-auto py-10 px-4 sm:px-8 space-y-8">
@@ -61,11 +78,19 @@ export default async function DashboardPage() {
                         New Challenge
                     </Link>
                 </Button>
-                <Button asChild className="w-full rounded-full">
-                    <Link href={`/dashboard/challenges/${challengesData[0].id}/check-in`}>
-                        Check-in Today ✅
-                    </Link>
-                </Button>
+                {checkInCandidate ? (
+                    <Button asChild className="group rounded-full px-6 shadow-lg shadow-primary/20">
+                        <Link href={`/dashboard/challenges/${checkInCandidate.id}/check-in`}>
+                            Check-in Today ✅
+                        </Link>
+                    </Button>
+                ) : (
+                    <Button asChild variant="outline" className="group rounded-full px-6">
+                        <Link href="/dashboard/challenges/new">
+                            Start a Fresh Challenge
+                        </Link>
+                    </Button>
+                )}
             </header>
 
             {/* Stats Overview */}
@@ -128,6 +153,8 @@ export default async function DashboardPage() {
                             challenge={challenge}
                             progress={challenge.progress}
                             daysCompleted={challenge.daysCompleted}
+                            todayCompleted={challenge.todayCompleted}
+                            currentDayNumber={challenge.currentDayNumber}
                         />
                     ))}
                 </div>

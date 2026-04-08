@@ -19,9 +19,15 @@ interface ChallengeCardProps {
     }
     progress: number // percentage
     daysCompleted: number
+    todayCompleted?: boolean
+    currentDayNumber?: number
 }
 
-export function ChallengeCard({ challenge, progress, daysCompleted }: ChallengeCardProps) {
+export function ChallengeCard({ challenge, progress, daysCompleted, todayCompleted, currentDayNumber }: ChallengeCardProps) {
+    const canCheckInToday = !!currentDayNumber && currentDayNumber >= 1 && currentDayNumber <= challenge.durationDays && !todayCompleted
+    const footerHref = canCheckInToday ? `/dashboard/challenges/${challenge.id}/check-in` : `/dashboard/challenges/${challenge.id}`
+    const footerLabel = canCheckInToday ? "Check in today" : "View Progress"
+
     return (
         <Card className="glass-card hover:shadow-primary/5 transition-all group border-none">
             <CardHeader className="pb-2">
@@ -52,14 +58,14 @@ export function ChallengeCard({ challenge, progress, daysCompleted }: ChallengeC
                     </div>
                     <div className="flex items-center gap-1">
                         <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                        <span>{daysCompleted} logs</span>
+                        <span>{daysCompleted}/{challenge.durationDays} days</span>
                     </div>
                 </div>
             </CardContent>
             <CardFooter>
                 <Button asChild variant="secondary" className="w-full group/btn">
-                    <Link href={`/dashboard/challenges/${challenge.id}`} className="flex items-center justify-center gap-2">
-                        View Progress
+                    <Link href={footerHref} className="flex items-center justify-center gap-2">
+                        {footerLabel}
                         <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
                 </Button>

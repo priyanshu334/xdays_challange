@@ -5,9 +5,9 @@ import { getCurrentUser } from "@/lib/auth/get-user"
 import { eq } from "drizzle-orm"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Trophy, Activity, Calendar } from "lucide-react"
+import { ArrowLeft, Trophy, Activity, Calendar, CheckCircle2 } from "lucide-react"
 
-export default async function ChallangePage({
+export default async function ChallengePage({
     params,
 }: {
     params: Promise<{ id: string }>
@@ -19,15 +19,15 @@ export default async function ChallangePage({
         return redirect("/login")
     }
 
-    const challange = await db.query.challenges.findFirst({
+    const challenge = await db.query.challenges.findFirst({
         where: eq(challenges.id, id),
     })
 
-    if (!challange) {
+    if (!challenge) {
         return redirect("/dashboard")
     }
 
-    if (challange.userId !== user.userId) {
+    if (challenge.userId !== user.userId) {
         return redirect("/dashboard")
     }
 
@@ -35,9 +35,20 @@ export default async function ChallangePage({
         where: eq(dailyLogs.challengeId, id),
         orderBy: (dailyLogs, { asc }) => [asc(dailyLogs.dayNumber)],
     })
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const startDate = new Date(challenge.startDate)
+    startDate.setHours(0, 0, 0, 0)
+    const currentDayNumber =
+        Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    const canCheckInToday =
+        currentDayNumber >= 1 && currentDayNumber <= challenge.durationDays
+    const todayCompleted = logs.some(
+        (log) => log.dayNumber === currentDayNumber && log.completed
+    )
 
     const getLogDate = (dayNum: number) => {
-        const d = new Date(challange.startDate)
+        const d = new Date(challenge.startDate)
         d.setDate(d.getDate() + (dayNum - 1))
         return d.toDateString()
     }
@@ -45,7 +56,7 @@ export default async function ChallangePage({
     // ✅ calculate progress
     const completedDays = logs.filter((l) => l.completed).length
     const progress =
-        (completedDays / challange.durationDays) * 100
+        (completedDays / challenge.durationDays) * 100
 
     return (
         <div className="container mx-auto py-10 px-4 sm:px-8 space-y-8">
@@ -62,14 +73,27 @@ export default async function ChallangePage({
 
                     <div>
                         <h1 className="text-3xl font-bold outfit text-gradient">
-                            {challange.title}
+                            {challenge.title}
                         </h1>
                         <p className="text-muted-foreground">
                             Stay consistent and complete your challenge 🚀
                         </p>
                     </div>
                 </div>
+                {canCheckInToday && (
+                    <Button asChild className="rounded-full px-6">
+                        <Link href={`/dashboard/challenges/${id}/check-in`}>
+                            {todayCompleted ? "Checked in today" : "Daily Check-in"}
+                        </Link>
+                    </Button>
+                )}
             </div>
+            {canCheckInToday && todayCompleted && (
+                <div className="glass-card p-4 rounded-2xl flex items-center gap-2 text-emerald-600">
+                    <CheckCircle2 className="w-4 h-4" />
+                    You have completed today&apos;s check-in. Keep the momentum going.
+                </div>
+            )}
 
             {/* Stats */}
             <div className="grid gap-4 md:grid-cols-3">
@@ -110,7 +134,7 @@ export default async function ChallangePage({
                             Total Days
                         </p>
                         <p className="text-2xl font-bold">
-                            {challange.durationDays}
+                            {challenge.durationDays}
                         </p>
                     </div>
                 </div>
