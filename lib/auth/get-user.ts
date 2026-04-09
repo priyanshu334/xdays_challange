@@ -9,9 +9,5 @@ export async function getCurrentUser() {
 
     if (!token) return null
 
-    const decoded = verifyToken(token) as { userId: string }
-
-    if (!decoded) return null
-
-    return decoded
+    return verifyToken(token)
 }

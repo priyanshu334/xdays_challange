@@ -46,6 +46,7 @@ export async function checkInAction(formData: FormData) {
         note: note || "",
     })
 
+    revalidatePath("/dashboard")
     revalidatePath(`/dashboard/challenges/${challengeId}`)
     revalidatePath(`/dashboard/challenges/${challengeId}/check-in`)
 }

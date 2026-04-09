@@ -5,7 +5,12 @@ import { getCurrentUser } from "@/lib/auth/get-user"
 import { eq } from "drizzle-orm"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Trophy, Activity, Calendar, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, Trophy, Activity, Calendar, CheckCircle2, Flame } from "lucide-react"
+import {
+    computeCurrentStreak,
+    daysLeftInChallenge,
+    getDayNumberFromStart,
+} from "@/lib/challenges/utils"
 
 export default async function ChallengePage({
     params,
@@ -38,14 +43,15 @@ export default async function ChallengePage({
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const startDate = new Date(challenge.startDate)
-    startDate.setHours(0, 0, 0, 0)
-    const currentDayNumber =
-        Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    const currentDayNumber = getDayNumberFromStart(startDate, today)
     const canCheckInToday =
         currentDayNumber >= 1 && currentDayNumber <= challenge.durationDays
     const todayCompleted = logs.some(
         (log) => log.dayNumber === currentDayNumber && log.completed
     )
+    const completedNums = logs.filter((l) => l.completed).map((l) => l.dayNumber)
+    const streak = computeCurrentStreak(completedNums, currentDayNumber, challenge.durationDays)
+    const daysLeft = daysLeftInChallenge(currentDayNumber, challenge.durationDays)
 
     const getLogDate = (dayNum: number) => {
         const d = new Date(challenge.startDate)
@@ -55,8 +61,7 @@ export default async function ChallengePage({
 
     // ✅ calculate progress
     const completedDays = logs.filter((l) => l.completed).length
-    const progress =
-        (completedDays / challenge.durationDays) * 100
+    const progress = Math.min((completedDays / challenge.durationDays) * 100, 100)
 
     return (
         <div className="container mx-auto py-10 px-4 sm:px-8 space-y-8">
@@ -78,6 +83,11 @@ export default async function ChallengePage({
                         <p className="text-muted-foreground">
                             Stay consistent and complete your challenge 🚀
                         </p>
+                        {challenge.description && (
+                            <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+                                {challenge.description}
+                            </p>
+                        )}
                     </div>
                 </div>
                 {canCheckInToday && (
@@ -96,7 +106,7 @@ export default async function ChallengePage({
             )}
 
             {/* Stats */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="glass-card p-6 rounded-2xl flex items-center gap-4">
                     <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Trophy className="w-6 h-6 text-primary" />
@@ -126,15 +136,29 @@ export default async function ChallengePage({
                 </div>
 
                 <div className="glass-card p-6 rounded-2xl flex items-center gap-4">
+                    <div className="size-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                        <Flame className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                            Current Streak
+                        </p>
+                        <p className="text-2xl font-bold">
+                            {streak}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="glass-card p-6 rounded-2xl flex items-center gap-4">
                     <div className="size-12 rounded-full bg-amber-500/10 flex items-center justify-center">
                         <Calendar className="w-6 h-6 text-amber-600" />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">
-                            Total Days
+                            Days Left
                         </p>
                         <p className="text-2xl font-bold">
-                            {challenge.durationDays}
+                            {daysLeft}
                         </p>
                     </div>
                 </div>

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, Trophy, ArrowRight } from "lucide-react"
+import { Calendar, Trophy, ArrowRight, Flame } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { Progress } from "../ui/progress"
@@ -21,10 +21,16 @@ interface ChallengeCardProps {
     daysCompleted: number
     todayCompleted?: boolean
     currentDayNumber?: number
+    streak?: number
+    daysLeft?: number
 }
 
-export function ChallengeCard({ challenge, progress, daysCompleted, todayCompleted, currentDayNumber }: ChallengeCardProps) {
+export function ChallengeCard({ challenge, progress, daysCompleted, todayCompleted, currentDayNumber, streak = 0, daysLeft }: ChallengeCardProps) {
     const canCheckInToday = !!currentDayNumber && currentDayNumber >= 1 && currentDayNumber <= challenge.durationDays && !todayCompleted
+    const inActiveWindow =
+        currentDayNumber !== undefined &&
+        currentDayNumber >= 1 &&
+        currentDayNumber <= challenge.durationDays
     const footerHref = canCheckInToday ? `/dashboard/challenges/${challenge.id}/check-in` : `/dashboard/challenges/${challenge.id}`
     const footerLabel = canCheckInToday ? "Check in today" : "View Progress"
 
@@ -51,7 +57,7 @@ export function ChallengeCard({ challenge, progress, daysCompleted, todayComplet
                     </div>
                     <Progress value={progress} className="h-2 bg-primary/10" />
                 </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
                         <span>Started {formatDistanceToNow(new Date(challenge.startDate))} ago</span>
@@ -60,6 +66,15 @@ export function ChallengeCard({ challenge, progress, daysCompleted, todayComplet
                         <Trophy className="w-3.5 h-3.5 text-amber-500" />
                         <span>{daysCompleted}/{challenge.durationDays} days</span>
                     </div>
+                    {inActiveWindow && streak > 0 && (
+                        <div className="flex items-center gap-1 text-orange-500 font-medium">
+                            <Flame className="w-3.5 h-3.5" />
+                            <span>{streak} day streak</span>
+                        </div>
+                    )}
+                    {inActiveWindow && daysLeft !== undefined && daysLeft > 0 && (
+                        <span className="text-muted-foreground">{daysLeft} days left</span>
+                    )}
                 </div>
             </CardContent>
             <CardFooter>

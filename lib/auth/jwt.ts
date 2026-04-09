@@ -1,11 +1,28 @@
-import jwt from "jsonwebtoken"
+import jwt, { JwtPayload } from "jsonwebtoken"
 
 export function signToken(payload: string | object | Buffer) {
-    return jwt.sign(payload, process.env.JWT_SECRET!, {
+    const secret = process.env.JWT_SECRET
+    if (!secret) {
+        throw new Error("JWT_SECRET is not set")
+    }
+    return jwt.sign(payload, secret, {
         expiresIn: "7d"
     })
 }
 
-export function verifyToken(token: string) {
-    return jwt.verify(token, process.env.JWT_SECRET!)
+/** Returns null if the token is missing, invalid, expired, or signed with a different secret. */
+export function verifyToken(token: string): { userId: string } | null {
+    const secret = process.env.JWT_SECRET
+    if (!secret) {
+        return null
+    }
+    try {
+        const decoded = jwt.verify(token, secret) as JwtPayload & { userId?: unknown }
+        if (typeof decoded.userId !== "string") {
+            return null
+        }
+        return { userId: decoded.userId }
+    } catch {
+        return null
+    }
 }

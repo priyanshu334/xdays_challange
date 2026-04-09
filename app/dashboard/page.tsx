@@ -5,8 +5,13 @@ import { Plus, Trophy, Activity, Target } from "lucide-react"
 import { getCurrentUser } from "@/lib/auth/get-user"
 import { db } from "@/db"
 import { challenges, dailyLogs } from "@/db/schemas"
-import { eq } from "drizzle-orm"
+import { desc, eq, inArray } from "drizzle-orm"
 import { redirect } from "next/navigation"
+import {
+    computeCurrentStreak,
+    daysLeftInChallenge,
+    getDayNumberFromStart,
+} from "@/lib/challenges/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -15,37 +20,49 @@ async function getChallengesWithProgress(userId: string) {
         .select()
         .from(challenges)
         .where(eq(challenges.userId, userId))
+        .orderBy(desc(challenges.createdAt))
 
-    const challengesWithData = await Promise.all(
-        userChallenges.map(async (challenge) => {
-            const logs = await db
-                .select()
-                .from(dailyLogs)
-                .where(eq(dailyLogs.challengeId, challenge.id))
+    if (userChallenges.length === 0) return []
 
-            const daysCompletedCount = logs.filter(l => l.completed).length
-            const progress = Math.min((daysCompletedCount / challenge.durationDays) * 100, 100)
-            const today = new Date()
-            today.setHours(0, 0, 0, 0)
-            const startDate = new Date(challenge.startDate)
-            startDate.setHours(0, 0, 0, 0)
-            const currentDayNumber =
-                Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-            const todayCompleted = logs.some(
-                (l) => l.dayNumber === currentDayNumber && l.completed
-            )
+    const ids = userChallenges.map((c) => c.id)
+    const allLogs = await db
+        .select()
+        .from(dailyLogs)
+        .where(inArray(dailyLogs.challengeId, ids))
 
-            return {
-                ...challenge,
-                progress,
-                daysCompleted: daysCompletedCount,
-                currentDayNumber,
-                todayCompleted,
-            }
-        })
-    )
+    const logsByChallenge = new Map<string, typeof allLogs>()
+    for (const log of allLogs) {
+        const list = logsByChallenge.get(log.challengeId) ?? []
+        list.push(log)
+        logsByChallenge.set(log.challengeId, list)
+    }
 
-    return challengesWithData
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    return userChallenges.map((challenge) => {
+        const logs = logsByChallenge.get(challenge.id) ?? []
+        const daysCompletedCount = logs.filter((l) => l.completed).length
+        const progress = Math.min((daysCompletedCount / challenge.durationDays) * 100, 100)
+        const startDate = new Date(challenge.startDate)
+        const currentDayNumber = getDayNumberFromStart(startDate, today)
+        const completedNums = logs.filter((l) => l.completed).map((l) => l.dayNumber)
+        const streak = computeCurrentStreak(completedNums, currentDayNumber, challenge.durationDays)
+        const todayCompleted = logs.some(
+            (l) => l.dayNumber === currentDayNumber && l.completed
+        )
+        const daysLeft = daysLeftInChallenge(currentDayNumber, challenge.durationDays)
+
+        return {
+            ...challenge,
+            progress,
+            daysCompleted: daysCompletedCount,
+            currentDayNumber,
+            todayCompleted,
+            streak,
+            daysLeft,
+        }
+    })
 }
 
 export default async function DashboardPage() {
@@ -109,7 +126,7 @@ export default async function DashboardPage() {
                         <Trophy className="w-6 h-6 text-amber-600" />
                     </div>
                     <div>
-                        <p className="text-sm text-muted-foreground font-medium">Total Logs</p>
+                        <p className="text-sm text-muted-foreground font-medium">Check-ins Logged</p>
                         <p className="text-2xl font-bold">
                             {challengesData.reduce((acc, curr) => acc + curr.daysCompleted, 0)}
                         </p>
@@ -120,7 +137,7 @@ export default async function DashboardPage() {
                         <Activity className="w-6 h-6 text-emerald-600" />
                     </div>
                     <div>
-                        <p className="text-sm text-muted-foreground font-medium">Consistency</p>
+                        <p className="text-sm text-muted-foreground font-medium">Avg. Progress</p>
                         <p className="text-2xl font-bold">
                             {challengesData.length > 0
                                 ? Math.round(challengesData.reduce((acc, curr) => acc + curr.progress, 0) / challengesData.length)
@@ -155,6 +172,8 @@ export default async function DashboardPage() {
                             daysCompleted={challenge.daysCompleted}
                             todayCompleted={challenge.todayCompleted}
                             currentDayNumber={challenge.currentDayNumber}
+                            streak={challenge.streak}
+                            daysLeft={challenge.daysLeft}
                         />
                     ))}
                 </div>

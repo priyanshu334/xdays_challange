@@ -118,7 +118,7 @@ export default async function CheckInPage({
                                     <div className="space-y-2">
                                         <h3 className="text-2xl font-bold text-green-500">Day {activeDayNumber} Complete!</h3>
                                         <p className="text-muted-foreground">
-                                            Awesome work! You're one step closer to your goal.
+                                            Awesome work! You&apos;re one step closer to your goal.
                                         </p>
                                     </div>
                                 </div>
@@ -127,7 +127,7 @@ export default async function CheckInPage({
                                     <div className="bg-white/5 rounded-2xl p-6 border border-white/10 relative">
                                         <Quote className="absolute -top-3 -left-3 w-8 h-8 text-white/10 rotate-12" />
                                         <p className="italic text-white/80">
-                                            "{todayLog.note}"
+                                            &ldquo;{todayLog.note}&rdquo;
                                         </p>
                                     </div>
                                 )}
@@ -144,7 +144,7 @@ export default async function CheckInPage({
                                 
                                 <div className="space-y-3">
                                     <Label htmlFor="note" className="text-lg font-medium">
-                                        Today's Notes (Optional)
+                                        Today&apos;s Notes (Optional)
                                     </Label>
                                     <Textarea 
                                         id="note"

@@ -30,16 +30,17 @@ export async function POST(req: Request) {
 
     if (!parsed.success) {
         return NextResponse.json(
-            { error: "Invalid input" },
+            { error: "Invalid input", details: parsed.error.flatten() },
             { status: 400 }
         )
     }
 
     const { title, description, durationDays, startDate } = parsed.data
 
-    const endDate = new Date(startDate)
-
-    endDate.setDate(endDate.getDate() + durationDays)
+    const start = new Date(startDate)
+    const endDate = new Date(start)
+    // Last calendar day of the challenge (day 1 = start, day N = start + N - 1)
+    endDate.setDate(endDate.getDate() + durationDays - 1)
 
     const challenge = await db
         .insert(challenges)
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
             title,
             description,
             durationDays,
-            startDate: new Date(startDate),
+            startDate: start,
             endDate
         })
         .returning()
